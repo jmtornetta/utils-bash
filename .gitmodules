@@ -1,3 +1,6 @@
 [submodule "func/easy-ssh"]
 	path = func/easy-ssh
 	url = https://github.com/jmtornetta/easy-ssh.git
+[submodule "53e0b39e9a59a1518990e76c2bff8038"]
+	path = 53e0b39e9a59a1518990e76c2bff8038
+	url = https://gist.github.com/53e0b39e9a59a1518990e76c2bff8038.git

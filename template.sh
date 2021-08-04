@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Author: Jon Tornetta https://github.com/jmtornetta
+# Usage: Type -h or --help for usage instructions
 defines () {
     local DIR
     DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)

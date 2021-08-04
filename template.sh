@@ -4,7 +4,7 @@
 header () {
     local DIR
     DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
-    export LOG="$DIR/${BASH_SOURCE[0]}.log"
+    local LOG="$DIR/${BASH_SOURCE[0]}.log"
 body () {
     set -Eeuo pipefail
     trap cleanup SIGINT SIGTERM ERR EXIT

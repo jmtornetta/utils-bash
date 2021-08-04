@@ -1,0 +1,101 @@
+
+
+Wed, Aug 04, 2021  6:47:38 PMMissing required parameter: param
+
+
+Wed, Aug 04, 2021  6:50:22 PMMissing required parameter: param
+
+
+Wed, Aug 04, 2021  6:50:33 PMMissing required parameter: param
+
+
+Wed, Aug 04, 2021  6:54:56 PMMissing required parameter: param
+
+
+Wed, Aug 04, 2021  6:55:00 PMMissing required parameter: param
+
+
+Wed, Aug 04, 2021  6:58:26 PMUnknown option: -p
+
+
+Wed, Aug 04, 2021  6:59:14 PMMissing script arguments
+
+
+Wed, Aug 04, 2021  7:00:02 PMRead parameters:
+- flag: 0
+- param: 
+- arguments: 
+test
+
+
+Wed, Aug 04, 2021  7:00:55 PMbash: PROGNAME: unbound variable
+
+
+Wed, Aug 04, 2021  7:01:01 PMbash: PROGNAME: unbound variable
+
+
+Wed, Aug 04, 2021  7:01:58 PM    USAGE: template.sh [-h] [-v] [-f] -p param_value arg1 [arg2...]
+    
+    Program deletes files from filesystems to release space. 
+    It gets config file that define fileystem paths to work on, and whitelist rules to 
+    keep certain files.
+
+    OPTIONS:
+       -c --config              configuration file containing the rules. use --help-config to see the syntax.
+       -n --pretend             do not really delete, just how what you are going to do.
+       -t --test                run unit test to check the program
+       -v --verbose             Verbose. You can specify more then one -v to have more verbose
+       -x --debug               debug
+       -h --help                show this help
+          --help-config         configuration help
+    
+    EXAMPLES:
+       1) Example 1
+       2) Example 2
+       3) Example 3
+       
+    CREDITS: 
+    https://betterdev.blog/minimal-safe-bash-script-template/
+    http://kfirlavi.herokuapp.com/blog/2012/11/14/defensive-bash-programming/
+Read parameters:
+- flag: 0
+- param: 
+- arguments: 
+test
+
+
+Wed, Aug 04, 2021  7:03:14 PM    USAGE: template.sh [-h] [-v] [-f] -p param_value arg1 [arg2...]
+    
+    Program deletes files from filesystems to release space. 
+    It gets config file that define fileystem paths to work on, and whitelist rules to 
+    keep certain files.
+
+    OPTIONS:
+       -c --config              configuration file containing the rules. use --help-config to see the syntax.
+       -n --pretend             do not really delete, just how what you are going to do.
+       -t --test                run unit test to check the program
+       -v --verbose             Verbose. You can specify more then one -v to have more verbose
+       -x --debug               debug
+       -h --help                show this help
+          --help-config         configuration help
+    
+    EXAMPLES:
+       1) Example 1
+       2) Example 2
+       3) Example 3
+       
+    CREDITS: 
+        1) https://betterdev.blog/minimal-safe-bash-script-template/
+        2) http://kfirlavi.herokuapp.com/blog/2012/11/14/defensive-bash-programming/
+Read parameters:
+- flag: 0
+- param: 
+- arguments: 
+test
+
+
+Wed, Aug 04, 2021  7:03:17 PMRead parameters:
+- flag: 0
+- param: 
+- arguments: 
+test

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Author: Jon Tornetta https://github.com/jmtornetta
 # Usage: Type -h or --help for usage instructions
-defines () {
+header () {
     local DIR
     DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
     export LOG="$DIR/${BASH_SOURCE[0]}.log"
-main () {
+body () {
     set -Eeuo pipefail
     trap cleanup SIGINT SIGTERM ERR EXIT
 usage() {
@@ -26,21 +26,13 @@ usage() {
           --help-config         configuration help
     
     EXAMPLES:
-       Run all tests:
-       $PROGNAME --test all
-
-       Run specific test:
-       $PROGNAME --test test_string.sh
-
-       Run:
-       $PROGNAME --config /path/to/config/$PROGNAME.conf
-
-       Just show what you are going to do:
-       $PROGNAME -vn -c /path/to/config/$PROGNAME.conf 
+       1) Example 1
+       2) Example 2
+       3) Example 3
        
     CREDITS: 
-    https://betterdev.blog/minimal-safe-bash-script-template/
-    http://kfirlavi.herokuapp.com/blog/2012/11/14/defensive-bash-programming/
+        1) https://betterdev.blog/minimal-safe-bash-script-template/
+        2) http://kfirlavi.herokuapp.com/blog/2012/11/14/defensive-bash-programming/
 EOF
 }
     cleanup() {
@@ -75,10 +67,10 @@ EOF
             case "${1-}" in
             -h | --help) usage ;;
             -v | --verbose) set -x ;;
-            --no-color) NO_COLOR=1 ;;
-            -f | --flag) flag=1 ;; # example flag
-            -p | --param) # example named parameter
-            param="${2-}"
+            #-f | --flag) flag=1 ;; # example flag
+            #-p | --param) ;; # example required named parameter
+            --no-color) NO_COLOR=1
+            param="${2-}" # example if parameter is required
             shift
             ;;
             -?*) die "Unknown option: $1" ;;
@@ -90,8 +82,8 @@ EOF
         args=("$@")
 
         # check required params and arguments
-        [[ -z "${param-}" ]] && die "Missing required parameter: param"
-        [[ ${#args[@]} -eq 0 ]] && die "Missing script arguments"
+        #[[ -z "${param-}" ]] && die "Missing required parameter: param" # if parameter is required
+        #[[ ${#args[@]} -eq 0 ]] && die "Missing script arguments" # if argumment is required
 
         return 0
     }
@@ -105,9 +97,12 @@ EOF
     msg "- flag: ${flag}"
     msg "- param: ${param}"
     msg "- arguments: ${args[*]-}"
-}
-}
+    
 # call function, set variables, and write to log file
-defines
+echo "hello world"
+
+}
+}
+header
 printf '\n\n%s' "$(date)" >> "$LOG"
-main "$@" |& tee -a "$LOG"
+body "$@" |& tee -a "$LOG"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Author: Jon Tornetta https://github.com/jmtornetta
 # Usage: Type -h or --help for usage instructions
-header () {
+initialize () {
     local DIR
     DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
     local LOG="$DIR/${BASH_SOURCE[0]}.log"
@@ -102,7 +102,7 @@ EOF
 echo "hello world"
 
 }
-}
-header
-printf '\n\n%s' "$(date)" >> "$LOG"
+printf '\n\n%s\n\n' "---$(date)---" >> "$LOG"
 body "$@" |& tee -a "$LOG"
+}
+initialize

@@ -1,11 +1,16 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # Author: Jon Tornetta https://github.com/jmtornetta
 # Usage: Type -h or --help for usage instructions
 
-initialize() {
-    local DIR
-    DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
-    local LOG="${BASH_SOURCE[0]}.log"
+start() {
+    source "" # load variables from config file
+    local DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
+    local SCRIPT=$(basename "${BASH_SOURCE[0]}")
+    local nSCRIPT=${SCRIPT%.*}
+    local today=$(date +"%Y%m%d")
+    local LOG="/tmp/$today-$nSCRIPT.log"
+    cd "$DIR"                     # ensure in this function's directory
+
     body() {
         set -Eeuo pipefail
         trap cleanup SIGINT SIGTERM ERR EXIT
@@ -38,6 +43,7 @@ EOF
         }
         cleanup() {
             # script cleanup here
+            printf "%s\n" "Script cleanup complete."
         }
         setupColors() {
             if [[ -t 2 ]] && [[ -z "${NO_COLOR-}" ]] && [[ "${TERM-}" != "dumb" ]]; then
@@ -48,6 +54,7 @@ EOF
             fi
         }
         msg() {
+            printf "%s\n" "For '$SCRIPT' in '$DIR'..."
             echo >&2 -e "${1-}"
         }
 
@@ -56,6 +63,7 @@ EOF
             local code=${2-1} # default exit status 1
             msg "$msg"
             exit "$code"
+            
         }
 
         parseParams() {
@@ -103,6 +111,6 @@ EOF
 
     }
     printf '\n\n%s\n\n' "---$(date)---" >>"$LOG"
-    body "$@" |& tee -a "$LOG"
+    body "$@" |& tee -a "$LOG" # pass arguments to functions and stream console to log
 }
-initialize
+start "$@" # pass arguments called during script source to body

@@ -2,48 +2,26 @@
 # Author: Jon Tornetta https://github.com/jmtornetta
 # Usage: Type -h or --help for usage instructions
 
-start() {
-    source "" # load variables from config file
-    local DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
-    local SCRIPT=$(basename "${BASH_SOURCE[0]}")
-    local nSCRIPT=${SCRIPT%.*}
-    local today=$(date +"%Y%m%d")
-    local LOG="/tmp/$today-$nSCRIPT.log"
-    cd "$DIR"                     # ensure in this function's directory
+start() { # collapse this function for readability
+    declare -ir reqArgs=1 # enter number of required arguments for module
+    declare -ar reqParams=() # enter number of required parameters for module
+    declare -a args # container for arguments less parameters
+    declare -A params # associative array container for key-values of parameters
+    declare -i flag
+
+    declare -r DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
+    declare -r SCRIPT=$(basename "${BASH_SOURCE[0]}") # script name
+    declare -r nSCRIPT=${SCRIPT%.*} # script name without extension (for log)
+    declare -r TODAY=$(date +"%Y%m%d")
+    declare -r LOG="/tmp/$TODAY-$nSCRIPT.log"
+    cd "$DIR" # ensure in this function's directory
 
     body() {
         set -Eeuo pipefail
         trap cleanup SIGINT SIGTERM ERR EXIT
-        usage() {
-            cat <<-EOF
-    USAGE: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-f] -p param_value arg1 [arg2...]
-    
-    Program deletes files from filesystems to release space. 
-    It gets config file that define fileystem paths to work on, and whitelist rules to 
-    keep certain files.
-
-    OPTIONS:
-       -c --config              configuration file containing the rules. use --help-config to see the syntax.
-       -n --pretend             do not really delete, just how what you are going to do.
-       -t --test                run unit test to check the program
-       -v --verbose             Verbose. You can specify more then one -v to have more verbose
-       -x --debug               debug
-       -h --help                show this help
-          --help-config         configuration help
-    
-    EXAMPLES:
-       1) Example 1
-       2) Example 2
-       3) Example 3
-       
-    CREDITS: 
-        1) https://betterdev.blog/minimal-safe-bash-script-template/
-        2) http://kfirlavi.herokuapp.com/blog/2012/11/14/defensive-bash-programming/
-EOF
-        }
         cleanup() {
-            # script cleanup here
-            printf "%s\n" "Script cleanup complete."
+            # add additional script cleanup commands here
+            printf "\n%s\n" "Exit Note: Script cleanup complete."
         }
         setupColors() {
             if [[ -t 2 ]] && [[ -z "${NO_COLOR-}" ]] && [[ "${TERM-}" != "dumb" ]]; then
@@ -54,61 +32,99 @@ EOF
             fi
         }
         msg() {
-            printf "%s\n" "For '$SCRIPT' in '$DIR'..."
-            echo >&2 -e "${1-}"
+            # puts 'printf' delim second, assigns default, and redirects to stderr so only shows in console/log (not script output)
+            # shellcheck disable=SC2059
+            printf >&2 "${2:-%s\n}" "${1-}"
         }
-
         die() {
-            local msg=$1
-            local code=${2-1} # default exit status 1
-            msg "$msg"
+            declare -r err=$1
+            declare -ir code=${2-1} # default exit status 1
+            msg "$err"
             exit "$code"
-            
         }
-
-        parseParams() {
+        parseParams() { # processes all parameters and then removes them from array of arguments supplied to function
             # default values of variables set from params
             flag=0
-            param=''
 
-            while :; do
-                case "${1-}" in
+            while :; do # run until all parameters are processed; end as soon as an argument is found without a preceding "-"
+                case "${1-}" in # '${1-}' sets default to 'null'
                 -h | --help) usage ;;
                 -v | --verbose) set -x ;;
-                #-f | --flag) flag=1 ;; # example flag
-                #-p | --param) ;; # example required named parameter
-                --no-color)
-                    NO_COLOR=1
-                    param="${2-}" # example if parameter is required
-                    shift
+                -f | --flag) flag=1 && printf "\n%s\n" "Flag set successful." ;; # example flag
+                -p1 | --param1) # example; copy-paste this case for more parameters
+                    params["$1"]="${2-}"
+                    shift # removes the 'param' value from the array of arguments supplied to script so additional arguments can be processed
                     ;;
+                -p2 | --param2) # example; copy-paste this case for more parameters
+                    params["$1"]="${2-}"
+                    shift # removes the 'param' value from the array of arguments supplied to script so additional arguments can be processed
+                    ;;
+
+                --no-color) NO_COLOR=1 ;;
                 -?*) die "Unknown option: $1" ;;
                 *) break ;;
                 esac
-                shift
+                shift # removes each processed parameter from the array of arguments so additional arguments can be processed
             done
 
-            args=("$@")
+            args=("$@") # assign remaining arguments to 'args'
 
-            # check required params and arguments
-            #[[ -z "${param-}" ]] && die "Missing required parameter: param" # if parameter is required
-            #[[ ${#args[@]} -eq 0 ]] && die "Missing script arguments" # if argumment is required
+            # check for required params and arguments
+            for i in "${!reqParams[@]}"; do
+                [[ ! "${!params[*]}" =~ ${reqParams[i]} ]] && die "Missing required parameter: '${reqParams[i]}'" # if parameter is required
+            done
+            [[ ${#args[@]} < $reqArgs ]] && die "Missing script arguments" # if argumment is required
 
             return 0
         }
-        parseParams "$@"
+        joinArr() {
+            (($#)) || return 1 # At least delimiter required
+            declare -- delim="$1" str IFS=
+            shift
+            str="${*/#/$delim}" # Expand arguments with prefixed delimiter (Empty IFS)
+            echo "${str:${#delim}}" # Echo without first delimiter
+        }
+        import() {
+            # shellcheck source=/dev/null
+            { [[ -f "$1" ]] && source "$@" ; } || msg "Import file does not exist"
+        }
+        usage() {
+            cat <<-EOF
+USAGE: $SCRIPT [-h] [-v] [-f] -p param_value arg1 [arg2...]
+
+Program description goes here.
+
+OPTIONS:
+-c --config              configuration file containing the rules. use --help-config to see the syntax.
+-n --pretend             do not really delete, just how what you are going to do.
+-t --test                run unit test to check the program
+-v --verbose             Verbose. You can specify more then one -v to have more verbose
+-x --debug               debug
+-h --help                show this help
+    --help-config         configuration help
+
+EXAMPLES:
+1) Example 1
+2) Example 2
+3) Example 3
+
+EOF
+            trap '' EXIT # unsets the exit trap when '--help' is defined
+            exit 0 # exits the script without an error
+        }
+
+        parseParams "$@" # called after 'usage' is defined
         setupColors
 
-        # insert script logic here
+        #~~~ BEGIN SCRIPT ~~~#
+        import "$DIR/vars" # example; include source vars/files here
+        printf "\n%s\n" "Hello World!"
+        #~~~ END SCRIPT ~~~#
 
-        msg "${RED}Read parameters:${NOFORMAT}"
+        msg "${RED}Inputs for '$SCRIPT' in '$DIR'...${NOFORMAT}" "\n%s\n"
+        msg "- arguments: $(joinArr ", " "${args[@]}")" # joins arguments array into delimited string
         msg "- flag: ${flag}"
-        msg "- param: ${param}"
-        msg "- arguments: ${args[*]-}"
-
-        # call function, set variables, and write to log file
-        echo "hello world"
-
+        msg "- parameters: $(declare -a arr; for key in "${!params[@]}"; do arr+=("$key:${params[$key]}"); done; joinArr ", " "${arr[@]}")" # joins parameters array into delimited string of key-value pairs
     }
     printf '\n\n%s\n\n' "---$(date)---" >>"$LOG"
     body "$@" |& tee -a "$LOG" # pass arguments to functions and stream console to log

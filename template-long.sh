@@ -34,7 +34,11 @@ start() { # collapse this function for readability
         msg() {
             # puts 'printf' delim second, assigns default, and redirects to stderr so only shows in console/log (not script output)
             # shellcheck disable=SC2059
-            printf >&2 "${2:-%s\n}" "${1-}"
+            if [[ "$1" =~ (%s|%d|%c|%x|%f|%b) ]]; then
+                printf >&2 "$1" "${@:2}"
+            else
+                printf >&2 "%s\n" "${@}"
+            fi
         }
         die() {
             declare -r err=$1

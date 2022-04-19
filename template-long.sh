@@ -9,7 +9,7 @@ start() { # collapse this function for readability
     # Declarations
     declare -a args # container for arguments less parameters
     declare -A params # associative array container for key-values of parameters
-    declare -i flag
+    declare -i flag # a flag is a binary parameter; it has no value pair
     # Setup
     declare -r DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
     declare -r SCRIPT=$(basename "${BASH_SOURCE[0]}") # script name

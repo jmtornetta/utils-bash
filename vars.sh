@@ -1,0 +1,2 @@
+#!/bin/bash
+declare -rx regexUrl='(https?:\/\/)?([^\.[:space:]]*?)\.([^\/[:space:]]*)' # splits a URL up into a domain prefix and suffix. NOTE: bash conditional regex (=~) doesn't accept special regex characters.

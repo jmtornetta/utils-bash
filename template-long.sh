@@ -32,7 +32,7 @@ start() { # collapse this function for readability
         }
         cleanup() {
             # add additional script cleanup commands here
-            printf "\n%s\n" "Exit Note: Script cleanup complete."
+            msg "Exit Note: Script cleanup complete."
         }
         die() {
             declare -r err="$1"

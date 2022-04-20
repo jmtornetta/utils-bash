@@ -1,12 +1,12 @@
 #!/bin/bash
 # Author: Jon Tornetta https://github.com/jmtornetta
 # Usage: Type -h or --help for usage instructions
-set -Eeuo pipefail
-trap cleanup SIGINT SIGTERM ERR EXIT
 start() { # collapse this function for readability
-    # Configuration
+    set -Eeuo pipefail
+
+    # Parameters
     declare -ir reqArgs=1 # enter number of required arguments for module
-    declare -ar reqParams=( "-p1|--param1" ) # enter regex pattern for required parameters for module
+    declare -ar reqParams=( "-P|--param1" ) # enter regex pattern for required parameters for module
     
     # Declarations
     declare -a args # container for arguments less parameters
@@ -21,7 +21,12 @@ start() { # collapse this function for readability
     declare -r TODAY=$(date +"%Y%m%d")
     declare -r LOG="/tmp/$TODAY-$nSCRIPT.log"
     cd "$DIR" # ensure in this function's directory
+    trap cleanup SIGINT SIGTERM ERR EXIT
 
+    cleanup() {
+        trap - SIGINT SIGTERM ERR EXIT
+        # add additional script cleanup commands here
+    }
     die() {
         declare -r err="$1"
         declare -ir code="${2-1}" # default exit status 1
@@ -39,10 +44,6 @@ start() { # collapse this function for readability
             printf >&2 "%s\n" "${@}"
         fi
     }
-    cleanup() {
-        trap - SIGINT SIGTERM ERR EXIT
-        # add additional script cleanup commands here
-    }
     parse_params() { # processes all parameters and then removes them from array of arguments supplied to function
         # default values of variables set from params
         flag=0
@@ -52,14 +53,13 @@ start() { # collapse this function for readability
             -h | --help) usage ;;
             -v | --verbose) set -x ;;
             -s | --silent) silent=1 ;;
-            -f | --flag) flag=1 && msg "Flag set successful." ;; # a flag is a binary parameter (i.e. it has no value)
-            -p1 | --param1) # example; copy-paste this case for more parameters
+            -P | --param1) # example; copy-paste this case for more parameters
                 ! [[ "${2:-}" =~ ^[a-zA-Z0-9[:blank:]]{1,100}$ ]] && die "Parameter value invalid." # Check paramter format using regex here
                 params["$1"]="$2"
                 msg "P1 parameter set!" # Sample action
                 shift # removes the 'param' value from the array of arguments supplied to script so additional arguments can be processed
                 ;;
-            -p2 | --param2) # example; copy-paste this case for more parameters
+            -p | --param2) # example; copy-paste this case for more parameters
                 ! [[ "${2:-}" =~ ^[a-zA-Z0-9[:blank:]]{1,100}$ ]] && die "Parameter value invalid." # Check paramter format using regex here
                 params["$1"]="$2"
                 msg "P2 parameter set!" # Sample action
@@ -94,7 +94,7 @@ start() { # collapse this function for readability
     }
     usage() {
         cat <<-EOF
-USAGE: $SCRIPT -p1 param_value [-p2 param_value] [-h] [-v] [-f] arg1 [arg2...]
+USAGE: $SCRIPT -p1 param_value [-p2 param_value] [-h] [-v] [-s] arg1 [arg2...]
 
 Program description goes here.
 
@@ -103,11 +103,11 @@ ARGUMENTS:
 2) Optional. Argument description.
 
 OPTIONS:
--v --verbose             Verbose shows line-by-line module messages.
--h --help                Help shows this usage message.
--f --flag                Flag sets a binary switch for the module.
--p1 --param1             Some required parameter.
--p2 --param2             Some optional parameter.
+-v, --verbose             Verbose shows line-by-line module messages.
+-h, --help                Help shows this usage message.
+-s, --silent              Suppresses messages defined in script without suppressing standard output or standard error streams.
+-P, --param1              Some required parameter.
+-p, --param2              Some optional parameter.
 
 EXAMPLES:
 1) Example 1

@@ -116,7 +116,6 @@ EOF
         trap '' EXIT # unsets the exit trap when '--help' is defined
         exit 0 # exits the script without an error
     }
-
     body() {
         #~~~ BEGIN SCRIPT ~~~#
 
@@ -124,14 +123,15 @@ EOF
         msg "\n%s\n\n" "Hello World!"
 
         #~~~ END SCRIPT ~~~#
+    }
+    footer() {
         msg "Inputs for '$SCRIPT' in '$DIR'..."
         msg "- arguments: $(join_arr ", " "${args[@]}")" # joins arguments array into delimited string
         msg "- parameters: $(declare -a arr; for key in "${!params[@]}"; do arr+=("$key:${params[$key]}"); done; join_arr ", " "${arr[@]}")" # joins parameters array into delimited string of key-value pairs
         msg "- flag: ${flag}"
     }
-    printf '\n\n%s\n\n' "#~~~$(date)~~~#" >>"$LOG"
-    printf '%s\n' "Raw Inputs: $*" >>"$LOG"
+    printf '\n\n%s\n%s\n\n' "#~~~$(date)~~~#" "Raw Inputs: $*" >>"$LOG"
     parse_params "$@" # filter parameters from arguments
-    body "${args[@]}" |& tee -a "$LOG" # pass filtered arguments to main script and stream console to log
+    body "${args[@]}" && footer "${args[@]}" |& tee -a "$LOG" # pass filtered arguments to main script and stream console to log
 }
 start "$@" # pass arguments called during script source to body

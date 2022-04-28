@@ -82,6 +82,7 @@ start() { # collapse this function for readability
         return 0
     }
     join_arr() {
+        # Usage: join_arr ", " "${arr[@]}"
         (($#)) || return 1 # At least delimiter required
         declare -- delim="$1" str IFS=
         shift

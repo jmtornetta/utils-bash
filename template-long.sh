@@ -88,10 +88,6 @@ start() { # collapse this function for readability
         str="${*/#/$delim}" # Expand arguments with prefixed delimiter (Empty IFS)
         echo "${str:${#delim}}" # Echo without first delimiter
     }
-    import() {
-        # shellcheck source=/dev/null
-        { [[ -f "$1" ]] && source "$@" ; } || die "Import file does not exist"
-    }
     usage() {
         cat <<-EOF
 USAGE: $SCRIPT -p1 param_value [-p2 param_value] [-h] [-v] [-s] arg1 [arg2...]

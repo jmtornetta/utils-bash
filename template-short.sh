@@ -2,6 +2,7 @@
 # Author: Jon Tornetta https://github.com/jmtornetta
 
 start() {
+    set -Eeuo pipefail
     declare -r DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
     declare -r SCRIPT=$(basename "${BASH_SOURCE[0]}") # script name
     declare -r nSCRIPT=${SCRIPT%.*} # script name without extension (for log)
@@ -10,7 +11,6 @@ start() {
     cd "$DIR" # ensure in this function's directory
 
     body() {
-        set -Eeuo pipefail
         #~~~ BEGIN SCRIPT ~~~#
         printf "\n%s\n" "Hello World!"
         #~~~ END SCRIPT ~~~#

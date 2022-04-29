@@ -41,7 +41,7 @@ start() { # collapse this function for readability
         elif [[ "$1" =~ (%s|%d|%c|%x|%f|%b) ]]; then
             printf >&2 "$1" "${@:2}"
         else
-            printf >&2 "%s\n" "${@}"
+            printf >&2 "\n%s\n" "${@}" # two line breaks is better for messages following user-input prompts
         fi
     }
     parse_params() { # processes all parameters and then removes them from array of arguments supplied to function
@@ -122,13 +122,14 @@ EOF
         #~~~ END SCRIPT ~~~#
     }
     footer() {
-        msg "Inputs for '$SCRIPT' in '$DIR'..."
-        msg "- arguments: $(join_arr ", " "${args[@]}")" # joins arguments array into delimited string
-        msg "- parameters: $(declare -a arr; for key in "${!params[@]}"; do arr+=("$key:${params[$key]}"); done; join_arr ", " "${arr[@]}")" # joins parameters array into delimited string of key-value pairs
-        msg "- flag: ${flag}"
+        # joins arguments array into delimited string; joins parameters array into delimited string of key-value pairs
+        msg '%s\n' "Inputs for '$SCRIPT' in '$DIR'..." \
+        "- arguments: $(join_arr ", " "${args[@]}")" \
+        "- parameters: $(declare -a arr; for key in "${!params[@]}"; do arr+=("$key:${params[$key]}"); done; join_arr ", " "${arr[@]}")" \
+        "- flag: ${flag}"
     }
     printf '\n\n%s\n%s\n\n' "#~~~$(date)~~~#" "Raw Inputs: $*" >>"$LOG"
     parse_params "$@" # filter parameters from arguments
-    body "${args[@]}" && footer "${args[@]}" |& tee -a "$LOG" # pass filtered arguments to main script and stream console to log
+    body "${args[@]}" && footer "${args[@]}" |& tee -a "$LOG" # pass filtered arguments to main script and stream console to log; NOTE: do not use 'tee' with 'select' menus!
 }
 start "$@" # pass arguments called during script source to body

@@ -16,6 +16,6 @@ start() {
         #~~~ END SCRIPT ~~~#
     }
     printf '\n\n%s\n\n' "---$(date)---" >>"$LOG"
-    body "$@" |& tee -a "$LOG" # pass arguments to functions and stream console to log
+    body "$@" |& tee -a "$LOG" # pass arguments to functions and stream console to log; NOTE: do not use 'tee' with 'select' menus!
 }
 start "$@" # pass arguments called during script source to body

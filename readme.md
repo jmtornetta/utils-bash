@@ -16,6 +16,7 @@ Commonly used bash variables which can be sourced into other scripts.
 2. http://kfirlavi.herokuapp.com/blog/2012/11/14/defensive-bash-programming/  
 # Plan
 ## Now
++ [ ] Create an 'important' parameter for the 'msg' function so that if the script is made silent important messages still display.  
 + [ ] Make parse_params die if parameters are not supplied before arguments; or, make script smart enough to parse them differently (hard w/ bash)  
 ## Later
 # Changelog

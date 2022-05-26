@@ -1,8 +1,8 @@
 #!/bin/bash
-removeArrayBlanks() {
+remove_arrBlanks() {
     # Usage: Provide array as input. Function removes empty items and rebuilds array using the same name. 
-    # Example 1 (commmon): removeArrayBlanks inputArray
-    # Example 2 (create new array from list): readarray -t newArray < <(removeArrayBlanks "hate" "" "empty" "array" "items")
+    # Example 1 (commmon): remove_arrBlanks inputArray
+    # Example 2 (create new array from list): readarray -t newArray < <(remove_arrBlanks "hate" "" "empty" "array" "items")
     
     if [[ $# -eq 1 ]]; then # Input is an array variable.
         declare -n localArray="${1}" # Declare variable 'linked' to input (i.e. same namespace)

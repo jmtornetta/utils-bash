@@ -6,7 +6,7 @@ start() { # collapse this function for readability
 
     # Parameters
     declare -ir reqArgs=1 # enter number of required arguments for module
-    declare -ar reqParams=( "-P|--param1" ) # enter regex pattern for required parameters for module
+    declare -ar reqParams=() # enter regex pattern for required parameters for module
     
     # Declarations
     declare -a args # container for arguments less parameters
@@ -20,7 +20,7 @@ start() { # collapse this function for readability
     declare -r nSCRIPT=${SCRIPT%.*} # script name without extension (for log)
     declare -r TODAY=$(date +"%Y%m%d")
     declare -r LOG="/tmp/$TODAY-$nSCRIPT.log"
-    cd "$DIR" # ensure in this function's directory
+    #cd "$DIR" # want to run this in current working directory
     trap cleanup SIGINT SIGTERM ERR EXIT
 
     cleanup() {
@@ -91,23 +91,22 @@ start() { # collapse this function for readability
     }
     usage() {
         cat <<-EOF
-USAGE: $SCRIPT -p1 param_value [-p2 param_value] [-h] [-v] [-s] arg1 [arg2...]
+USAGE: $SCRIPT [-h] [-v] [-s] repoUrl [branch]
 
-Program description goes here.
+Clone repo and submodules into current directory, even if it is non-empty.
+See: https://stackoverflow.com/questions/2411031/how-do-i-clone-into-a-non-empty-directory
 
 ARGUMENTS:
-1) Required. Argument description.
-2) Optional. Argument description.
+1) repoUrl: The url/path to the git repo to clone.
+2) branch: Optional. The target branch to setup, checkout, and track. Defaults to main.
 
 OPTIONS:
 -v, --verbose             Verbose shows line-by-line module messages.
 -h, --help                Help shows this usage message.
 -s, --silent              Suppresses messages defined in script without suppressing standard output or standard error streams.
--P, --param1              Some required parameter.
--p, --param2              Some optional parameter.
 
 EXAMPLES:
-1) Example 1
+1) ./git-powerclone.sh git@github.com:meddkit/mk-wordpress.git dev
 
 EOF
         trap '' EXIT # unsets the exit trap when '--help' is defined
@@ -115,10 +114,22 @@ EOF
     }
     body() {
         #~~~ BEGIN SCRIPT ~~~#
-
-        # import "$DIR/vars" # example; include source vars/files here
-        msg "\n%s\n\n" "Hello World!"
-
+        # Check for existing git repo
+        if [ -d .git ] && git rev-parse --git-dir >/dev/null 2>&1; then
+            declare currentGitUrl && currentGitUrl=$(git config --get remote.origin.url)
+            msg '\n%s\t' "There is an existing git repo for '$currentGitUrl'. Exit [y/N]?" && read -n 1 -r prompt
+            [[ ${prompt:-y} =~ ^[Yy]?$ ]] && die "Exiting."
+        fi
+        # Create repo; add origin url; fetch files; create, switch to, and track target branch; resest to give up on 'deleted' files
+        msg "Cloning git repot..."
+        git init &&
+        { git remote add origin "$1" || git remote set-url origin "$1" ; } &&
+        git fetch origin &&
+        git checkout -t origin/"${2:-main}" &&
+        git reset HEAD &&
+        git submodule update --init --recursive # pull submodule files
+        msg "Clone complete! Current branches:"
+        git branch -av     # list all branches
         #~~~ END SCRIPT ~~~#
     }
     footer() {

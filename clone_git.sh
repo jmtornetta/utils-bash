@@ -114,12 +114,22 @@ EOF
     }
     body() {
         #~~~ BEGIN SCRIPT ~~~#
+
+        # Check if git is installed
+        if git --version >/dev/null 2>&1; then
+            echo "Confirmed git is installed."
+        else
+            echo "Git is not installed. Installing..."
+            sudo apt-get update && sudo apt-get install git
+        fi
+
         # Check for existing git repo
         if [ -d .git ] && git rev-parse --git-dir >/dev/null 2>&1; then
             declare currentGitUrl && currentGitUrl=$(git config --get remote.origin.url)
             msg '\n%s\t' "There is an existing git repo for '$currentGitUrl'. Exit [y/N]?" && read -n 1 -r prompt
             [[ ${prompt:-y} =~ ^[Yy]?$ ]] && die "Exiting."
         fi
+        
         # Create repo; add origin url; fetch files; create, switch to, and track target branch; resest to give up on 'deleted' files
         msg "Cloning git repot..."
         git init &&

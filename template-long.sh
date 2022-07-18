@@ -18,7 +18,7 @@ start() { # collapse this function for readability
     declare -r DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
     declare -r SCRIPT=$(basename "${BASH_SOURCE[0]}") # script name
     declare -r nSCRIPT=${SCRIPT%.*} # script name without extension (for log)
-    declare -r TODAY=$(date +"%Y%m%d")
+    declare -r TODAY=$(date +"%Y%m%d" | sed 's/^[2-9][0-9]//') # removes first two digits from year
     declare -r LOG="/tmp/$TODAY-$nSCRIPT.log"
     cd "$DIR" # ensure in this function's directory
     trap cleanup SIGINT SIGTERM ERR EXIT

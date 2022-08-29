@@ -13,6 +13,7 @@ start() { # collapse this function for readability
     declare -A params # associative array container for key-values of parameters
     declare -i flag # a flag is a binary parameter; it has no value pair
     declare -i silent
+    declare -i verbose
 
     # Setup
     declare -r DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
@@ -51,16 +52,16 @@ start() { # collapse this function for readability
         while :; do # run until all parameters are processed; end as soon as an argument is found without a preceding "-"
             case "${1-}" in # '${1-}' sets default to 'null'
             -h | --help) usage ;;
-            -v | --verbose) set -x ;;
+            -v | --verbose) verbose=1 && set -x ;;
             -s | --silent) silent=1 ;;
             -P | --param1) # example; copy-paste this case for more parameters
-                ! [[ "${2:-}" =~ ^[a-zA-Z0-9[:blank:]]{1,100}$ ]] && die "Parameter value invalid." # Check paramter format using regex here
+                ! [[ "${2:-}" =~ ^[a-zA-Z0-9[:blank:]]{1,100}$ ]] && die "Parameter value invalid." # Check parameter format using regex here
                 params["$1"]="$2"
                 msg "P1 parameter set!" # Sample action
                 shift # removes the 'param' value from the array of arguments supplied to script so additional arguments can be processed
                 ;;
             -p | --param2) # example; copy-paste this case for more parameters
-                ! [[ "${2:-}" =~ ^[a-zA-Z0-9[:blank:]]{1,100}$ ]] && die "Parameter value invalid." # Check paramter format using regex here
+                ! [[ "${2:-}" =~ ^[a-zA-Z0-9[:blank:]]{1,100}$ ]] && die "Parameter value invalid." # Check parameter format using regex here
                 params["$1"]="$2"
                 msg "P2 parameter set!" # Sample action
                 shift # removes the 'param' value from the array of arguments supplied to script so additional arguments can be processed
@@ -110,7 +111,7 @@ EXAMPLES:
 1) Example 1
 
 EOF
-        trap '' EXIT # unsets the exit trap when '--help' is defined
+        trap '' EXIT # unset the exit trap when '--help' is defined
         exit 0 # exits the script without an error
     }
     body() {
@@ -123,6 +124,7 @@ EOF
     }
     footer() {
         # joins arguments array into delimited string; joins parameters array into delimited string of key-value pairs
+        [[ "${verbose:-}" != 1 ]] && return
         msg '%s\n' "Inputs for '$SCRIPT' in '$DIR'..." \
         "- arguments: $(join_arr ", " "${args[@]}")" \
         "- parameters: $(declare -a arr; for key in "${!params[@]}"; do arr+=("$key:${params[$key]}"); done; join_arr ", " "${arr[@]}")" \

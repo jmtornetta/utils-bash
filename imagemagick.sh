@@ -4,6 +4,10 @@
 
 function convert_cropResizeBulk {
   # Quickly modify a group of images in place. Backup first!
+  mogrify -format webp -resize 20% ./*.jpg
+}
+function convert_cropResizeBulk {
+  # Quickly modify a group of images in place. Backup first!
   mogrify -gravity center -crop 1:1 -resize 400x400 ./*.webp
 }
 function convert_cropResize {

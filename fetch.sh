@@ -6,12 +6,10 @@ start() { # collapse this function for readability
 
   # Parameters
   declare -ir reqArgs=1 # enter number of required arguments for module
-  # declare -ar reqParams=( "-P|--param1" ) # enter regex pattern for required parameters for module
 
   # Declarations
   declare -a args   # container for arguments less parameters
-  declare -A params # associative array container for key-values of parameters
-  declare -i flag   # a flag is a binary parameter; it has no value pair
+  declare -a params # container for key-values of parameters; not using associative array because multiple parameters can have same key for curl.
   declare -i silent
   declare -i verbose
 
@@ -21,7 +19,6 @@ start() { # collapse this function for readability
   declare -r nSCRIPT=${SCRIPT%.*}                            # script name without extension (for log)
   declare -r TODAY=$(date +"%Y%m%d" | sed 's/^[2-9][0-9]//') # removes first two digits from year
   declare -r LOG="/tmp/$TODAY-$nSCRIPT.log"
-  cd "$DIR" # ensure in this function's directory
   trap cleanup SIGINT SIGTERM ERR EXIT
 
   cleanup() {
@@ -47,7 +44,6 @@ start() { # collapse this function for readability
   }
   parse_params() { # processes all parameters and then removes them from array of arguments supplied to function
     # default values of variables set from params
-    flag=0
 
     while :; do       # run until all parameters are processed; end as soon as an argument is found without a preceding "-"
       case "${1-}" in # '${1-}' sets default to 'null'
@@ -56,8 +52,8 @@ start() { # collapse this function for readability
       -s | --silent) silent=1 ;;
       -[1-3a-zA-Z]* | --[a-zA-z]*) # match any parameter that begins with - or -- and has at least one letter after it
         # ! [[ "${1:1}" =~ [a-zA-Z] ]] && die "Parameter value invalid." # Check parameter format using regex here
-        params["$1"]="$2"
-        shift # removes the 'param' value from the array of arguments supplied to script so additional arguments can be processed
+        # ensure that the parameter is not a flag
+        { [[ "${2:0}" == - ]] && params+=("$1"); } || { params+=("$1" "$2") && shift; }
         ;;
       *)
         [[ -z "${1:-}" ]] && break
@@ -69,11 +65,6 @@ start() { # collapse this function for readability
     done
 
     set -- "" # Unset args so not referenced by sourced scripts. See https://www.gnu.org/software/bash/manual/bash.html#The-Set-Builtin.
-
-    # check for required params and arguments
-    # for i in "${!reqParams[@]}"; do
-    #   [[ ! "${!params[*]}" =~ ${reqParams[i]} ]] && die "Missing required parameter: '${reqParams[i]}'." # if parameter is required
-    # done
 
     [[ ${#args[@]} < $reqArgs ]] && die "Missing script arguments." # if argumment is required
 
@@ -89,9 +80,11 @@ start() { # collapse this function for readability
   }
   usage() {
     cat <<-EOF
-USAGE: $SCRIPT -p1 param_value [-p2 param_value] [-h] [-v] [-s] arg1 [arg2...]
+USAGE: $SCRIPT [-h] [-v] [-s] URL [METHOD]
 
-A simple 'curl' with sensible defaults for web development.
+A simple 'curl' with sensible defaults for web development. Accepts all 'curl' options.
+
+See all 'curl' options via 'curl --help all'.
 
 ARGUMENTS:
 1) Required. URL.
@@ -99,11 +92,11 @@ ARGUMENTS:
 
 OPTIONS:
 -v, --verbose       Verbose shows line-by-line module messages.
--h, --help        Help shows this usage message.
+-h, --help          Help shows this usage message.
 -s, --silent        Suppresses messages defined in script without suppressing standard output or standard error streams.
 
 EXAMPLES:
-1) ./fetch.sh "https://google.com" "GET" --output myfile.txt -s
+1) ./fetch.sh "https://google.com" "POST" -d  --output myfile.txt -s
 
 EOF
     trap '' EXIT # unset the exit trap when '--help' is defined
@@ -111,6 +104,7 @@ EOF
   }
   body() {
     #~~~ BEGIN SCRIPT ~~~#
+
     # Define an array of valid HTTP methods
     declare -ar valid_methods=("GET" "POST" "PUT" "DELETE" "PATCH")
     declare -r url="$1"
@@ -118,7 +112,7 @@ EOF
     # default curl options. inherit silent/verbose and pass to curl.
     declare -a curl_opts=(-# -H 'Accept: */*' -H 'Content-Type:application/json' ${silent:+"-s"} ${silent:+"-S"} ${verbose:+"-v"})
 
-    for key in "${!params[@]}"; do curl_opts+=("$key" "${params[$key]}"); done
+    curl_opts+=("${params[@]}")
 
     [ !${silent:-} ] && msg "%s\n" "URL: '$url'" "METHOD: '$method'" "OPTIONS: $(join_arr ' | ' "${curl_opts[@]}")"
 
@@ -130,6 +124,7 @@ EOF
 
     # Execute the curl command
     curl "${curl_opts[@]}" -X "$method" "$url"
+
     #~~~ END SCRIPT ~~~#
   }
   footer() {
@@ -137,12 +132,7 @@ EOF
     [[ "${verbose:-}" != 1 ]] && return
     msg '%s\n' "Inputs for '$SCRIPT' in '$DIR'..." \
       "- arguments: $(join_arr ", " "${args[@]}")" \
-      "- parameters: $(
-        declare -a arr
-        for key in "${!params[@]}"; do arr+=("$key:${params[$key]}"); done
-        join_arr ", " "${arr[@]}"
-      )" \
-      "- flag: ${flag}"
+      "- parameters: $(join_arr ", " "${params[@]}")"
   }
   printf '\n\n%s\n%s\n\n' "#~~~$(date)~~~#" "Raw Inputs: $*" >>"$LOG"
   parse_params "$@"                                         # filter parameters from arguments

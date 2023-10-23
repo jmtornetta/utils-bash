@@ -109,12 +109,14 @@ EOF
     declare -ar valid_methods=("GET" "POST" "PUT" "DELETE" "PATCH")
     declare -r url="$1"
     declare -r method="${2:-${valid_methods[0]}}"
+    declare -r headers_file="$(mktemp)"
+    # declare -r hide_stderr="${silent:-'2>/dev/null'}"
     # default curl options. inherit silent/verbose and pass to curl.
-    declare -a curl_opts=(-# -H 'Accept: */*' -H 'Content-Type:application/json' ${silent:+"-s"} ${silent:+"-S"} ${verbose:+"-v"})
+    declare -a curl_opts=(-# -D "$headers_file" -H 'Accept: */*' -H 'Content-Type:application/json' ${silent:+"-s"} ${silent:+"-S"} ${verbose:+"-v"})
 
     curl_opts+=("${params[@]}")
 
-    [ !${silent:-} ] && msg "%s\n" "URL: '$url'" "METHOD: '$method'" "OPTIONS: $(join_arr ' | ' "${curl_opts[@]}")"
+    [ -z ${silent:-} ] && msg "%s\n" "URL: '$url'" "METHOD: '$method'" "OPTIONS: $(join_arr ' | ' "${curl_opts[@]}")" "RESPONSE:"   
 
     # Check if the provided method is in the list of valid methods
     if ! [[ " ${valid_methods[@]} " =~ " $method " ]]; then
@@ -124,6 +126,11 @@ EOF
 
     # Execute the curl command
     curl "${curl_opts[@]}" -X "$method" "$url"
+    echo >&2 -e "\n" 
+
+    # Write headers to the console
+    [ -z ${silent:-} ] && msg '%s\n' "HEADERS:" && cat "$headers_file" >&2
+    rm "$headers_file"
 
     #~~~ END SCRIPT ~~~#
   }

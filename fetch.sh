@@ -12,6 +12,7 @@ start() { # collapse this function for readability
   declare -a params # container for key-values of parameters; not using associative array because multiple parameters can have same key for curl.
   declare -i silent
   declare -i verbose
+  declare -i no_format
 
   # Setup
   declare -r DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
@@ -50,6 +51,7 @@ start() { # collapse this function for readability
       -h | --help) usage ;;
       -v | --verbose) verbose=1 && set -x ;;
       -s | --silent) silent=1 ;;
+      --no-format) no_format=1 ;;
       -[1-3a-zA-Z]* | --[a-zA-z]*) # match any parameter that begins with - or -- and has at least one letter after it
         # ! [[ "${1:1}" =~ [a-zA-Z] ]] && die "Parameter value invalid." # Check parameter format using regex here
         # ensure that the parameter is not a flag
@@ -91,6 +93,7 @@ ARGUMENTS:
 2) Optional. METHOD.
 
 OPTIONS:
+--no-format         Suppresses JSON formatting of response.
 -v, --verbose       Verbose shows line-by-line module messages.
 -h, --help          Help shows this usage message.
 -s, --silent        Suppresses messages defined in script without suppressing standard output or standard error streams.
@@ -116,7 +119,7 @@ EOF
 
     curl_opts+=("${params[@]}")
 
-    [ -z ${silent:-} ] && msg "%s\n" "URL: '$url'" "METHOD: '$method'" "OPTIONS: $(join_arr ' | ' "${curl_opts[@]}")" "RESPONSE:"   
+    [ -z ${silent:-} ] && msg "%s\n" "URL: '$url'" "METHOD: '$method'" "OPTIONS: $(join_arr ' | ' "${curl_opts[@]}")"
 
     # Check if the provided method is in the list of valid methods
     if ! [[ " ${valid_methods[@]} " =~ " $method " ]]; then
@@ -124,25 +127,28 @@ EOF
       return 1
     fi
 
-    # Execute the curl command
-    curl "${curl_opts[@]}" -X "$method" "$url"
-    echo >&2 -e "\n" 
+    function run_curl {
+      curl "${curl_opts[@]}" -X "$method" "$url"
+    }
+    declare response
+    if [[ -z "${no_format:-}" ]]; then
+      response=$(run_curl | jq -C)
+    else
+      response=$(run_curl)
+    fi
 
-    # Write headers to the console
-    [ -z ${silent:-} ] && msg '%s\n' "HEADERS:" && cat "$headers_file" >&2
+    [ -z "${silent:-}" ] && msg '%s\n' "HEADERS:" && cat "$headers_file" >&2
     rm "$headers_file"
 
-    #~~~ END SCRIPT ~~~#
-  }
-  footer() {
-    # joins arguments array into delimited string; joins parameters array into delimited string of key-value pairs
-    [[ "${verbose:-}" != 1 ]] && return
-    msg '%s\n' "Inputs for '$SCRIPT' in '$DIR'..." \
+    [ -n "${verbose:-}" ] && msg '%s\n' "Inputs for '$SCRIPT' in '$DIR'..." \
       "- arguments: $(join_arr ", " "${args[@]}")" \
       "- parameters: $(join_arr ", " "${params[@]}")"
+
+    msg '%s\n' "RESPONSE:" && echo "$response" && msg '%s\n' " " # add extra line break after response
+    #~~~ END SCRIPT ~~~#
   }
   printf '\n\n%s\n%s\n\n' "#~~~$(date)~~~#" "Raw Inputs: $*" >>"$LOG"
-  parse_params "$@"                                         # filter parameters from arguments
-  body "${args[@]}" && footer "${args[@]}" |& tee -a "$LOG" # pass filtered arguments to main script and stream console to log; NOTE: do not use 'tee' with 'select' menus!
+  parse_params "$@"                  # filter parameters from arguments
+  body "${args[@]}" |& tee -a "$LOG" # pass filtered arguments to main script and stream console to log; NOTE: do not use 'tee' with 'select' menus!
 }
 start "$@"

@@ -18,7 +18,7 @@ for domain in "$@"; do
   mkdir -p "$target_directory"
   
   # Use wget to download the content
-  wget --restrict-file-names=windows --recursive --page-requisites --adjust-extension --span-hosts --convert-links --no-parent --domains "$domain" --wait=3 --random-wait --execute robots=off --user-agent="Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" --directory-prefix="$target_directory" "$domain"
+  wget --recursive --page-requisites --adjust-extension --span-hosts --convert-links --domains="$domain" --wait=3 --random-wait --execute robots=off --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36" --directory-prefix="$target_directory" "$domain"
   
   echo "Scraping of $domain completed."
 done
